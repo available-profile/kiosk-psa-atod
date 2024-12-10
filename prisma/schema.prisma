@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model basket {
+  UserID     Int
+  ResourceID Int
+  Token      String @db.VarChar(64)
+
+  @@id([UserID, ResourceID, Token])
+}
+
+model consumerbinding {
+  ConsumerCategoryID Int
+  ResourceID         Int
+
+  @@id([ConsumerCategoryID, ResourceID])
+}
+
+model consumercategory {
+  ConsumerCategoryID Int     @id @default(autoincrement())
+  CategoryLabel      String? @db.VarChar(50)
+  Filename           String? @db.VarChar(255)
+
+  @@index([CategoryLabel], map: "IDX_CATEGORYLABEL")
+}
+
+model device {
+  DeviceID       Int     @id @default(autoincrement())
+  UserID         Int?
+  DeviceTypeID   Int?
+  Token          String? @db.VarChar(64)
+  ThemeID        Int?
+  Label          String? @db.VarChar(50)
+  FontSizePoints Int?
+  ScreenPixelsX  Int?
+  ScreenPixelsY  Int?
+  IsLandscape    Int?    @db.TinyInt
+  IsTouchscreen  Int?    @db.TinyInt
+  IsMousePointer Int?    @db.TinyInt
+  IsPrintEnabled Int?    @db.TinyInt
+  UserAgent      String? @db.VarChar(255)
+
+  @@index([DeviceTypeID], map: "IDX_DeviceTypeID")
+  @@index([UserID, DeviceID], map: "IDX_Search")
+  @@index([Token], map: "IDX_Token")
+  @@index([UserID], map: "IDX_UserID")
+}
+
+model devicetype {
+  DeviceTypeID   Int     @id @default(autoincrement())
+  Label          String? @db.VarChar(50)
+  Reference      String? @db.VarChar(30)
+  IsActive       Int?    @db.TinyInt
+  FontSizePoints Int?
+  ScreenPixelsX  Int?
+  ScreenPixelsY  Int?
+  IsLandscape    Int?    @db.TinyInt
+  IsTouchscreen  Int?    @db.TinyInt
+  IsMousePointer Int?    @db.TinyInt
+  DisplayOrder   Int?
+
+  @@index([DisplayOrder], map: "IDX_DisplayOrder")
+  @@index([IsActive], map: "IDX_IsActive")
+  @@index([Reference], map: "IDX_Reference")
+}
+
+model event {
+  EventID     BigInt    @id @default(autoincrement())
+  EventDate   DateTime? @db.DateTime(0)
+  EventTypeID Int?
+  UserID      Int?
+  DeviceID    Int?
+  ResourceID  Int?
+  Description String?   @db.VarChar(255)
+
+  @@index([EventDate], map: "IDX_EventDate")
+  @@index([EventID], map: "IDX_EventID")
+  @@index([ResourceID], map: "IDX_ResourceID")
+  @@index([UserID], map: "IDX_UserID")
+}
+
+model eventtype {
+  EventTypeID  Int     @id @default(autoincrement())
+  Label        String? @db.VarChar(50)
+  Reference    String? @db.VarChar(30)
+  DisplayOrder Int?
+
+  @@index([DisplayOrder], map: "IDX_DisplayOrder")
+  @@index([Reference], map: "IDX_Reference")
+}
+
+model favlist {
+  UserID     Int
+  ResourceID Int
+
+  @@id([UserID, ResourceID])
+}
+
+model resource {
+  ResourceID   Int       @id @default(autoincrement())
+  Title        String?   @db.VarChar(160)
+  CategoryID   Int?
+  IsActive     Int?      @db.TinyInt
+  IsDemo       Int?      @db.TinyInt
+  IsDeleted    Int?      @db.TinyInt
+  ResourceDate DateTime? @db.DateTime(0)
+  Filename     String?   @db.VarChar(255)
+  SponsorName  String?   @db.VarChar(50)
+  SponsorUrl   String?   @db.VarChar(255)
+  Keywords     String?   @db.VarChar(255)
+  Description  String?   @db.VarChar(4000)
+
+  @@index([IsActive], map: "IDX_Category")
+  @@index([IsDeleted, IsActive, Title, Keywords, Description(length: 767)], map: "IDX_Search")
+  @@index([IsActive, Title], map: "IDX_Title")
+}
+
+model resource_bkp {
+  ResourceID   Int       @id
+  Title        String?   @db.VarChar(160)
+  CategoryID   Int?
+  Category     String?   @db.VarChar(50)
+  IsActive     Int?      @db.TinyInt
+  ResourceDate DateTime? @db.DateTime(0)
+  ColourName   String?   @db.VarChar(20)
+  ColourHex    String?   @db.Char(6)
+  Filename     String?   @db.VarChar(255)
+  SponsorName  String?   @db.VarChar(50)
+  SponsorUrl   String?   @db.VarChar(255)
+  Keywords     String?   @db.VarChar(255)
+  Description  String?   @db.VarChar(4000)
+
+  @@index([IsActive, Category], map: "IDX_Category")
+  @@index([IsActive, Title, Keywords, Description(length: 767)], map: "IDX_Search")
+  @@index([IsActive, Title], map: "IDX_Title")
+}
+
+model resourcecategory {
+  CategoryID    Int     @id @default(autoincrement())
+  CategoryLabel String? @db.VarChar(50)
+  ColourName    String? @db.VarChar(20)
+  ColourHex     String? @db.Char(6)
+}
+
+model system {
+  SystemKey   String @id @db.VarChar(30)
+  SystemValue String @db.VarChar(128)
+}
+
+model template {
+  TemplateKey      String  @id @db.VarChar(50)
+  TemplateFull     Bytes?  @db.Blob
+  TemplateDemo     Bytes?  @db.Blob
+  TemplateFilename String? @db.VarChar(160)
+}
+
+model theme {
+  ThemeID      Int     @id @default(autoincrement())
+  Label        String? @db.VarChar(30)
+  Stylesheet   String? @db.VarChar(255)
+  IsActive     Int?    @db.TinyInt
+  DisplayOrder Int?
+
+  @@index([IsActive, DisplayOrder], map: "IsActive")
+}
+
+model user {
+  UserID                 Int       @id @default(autoincrement())
+  Username               String?   @unique(map: "UQ_Username") @db.VarChar(128)
+  Password               Bytes?    @db.VarBinary(40)
+  Token                  String?   @db.VarChar(40)
+  DisplayName            String?   @db.VarChar(128)
+  Email                  String?   @db.VarChar(255)
+  FromEmail              String?   @db.VarChar(255)
+  ReplyEmail             String?   @db.VarChar(255)
+  DateExpires            DateTime? @db.DateTime(0)
+  DateLastLogon          DateTime? @db.DateTime(0)
+  DateLastPasswordChange DateTime? @db.DateTime(0)
+  IsMustChangePassword   Boolean?  @db.TinyInt
+  IsCannotChangePassword Boolean?  @db.TinyInt
+  IsNewUser              Boolean?  @db.TinyInt
+  IsActive               Boolean?  @db.TinyInt
+  IsDemo                 Boolean?  @db.TinyInt
+  IsAdmin                Boolean?  @db.TinyInt
+  IsEmail                Boolean?  @db.TinyInt
+  IsPublish              Boolean?  @db.TinyInt
+  PublishSender          String?   @db.VarChar(255)
+  PublishEmail           String?   @db.VarChar(255)
+  PublishAddress         String?   @db.VarChar(255)
+  PublishPhone           String?   @db.VarChar(80)
+  PublishWeb             String?   @db.VarChar(255)
+  Watermark              String?   @db.VarChar(255)
+  ClerkUserId            String?   @unique
+  FirstName              String?   @db.VarChar(128)
+  LastName               String?   @db.VarChar(128)
+  Role                   Role?     @default(PHARMACY_WORKER)
+
+  @@index([Username, Password, IsActive, DateExpires], map: "IDX_Authentication")
+  @@index([DateExpires], map: "IDX_DateExpires")
+  @@index([Username], map: "IDX_Username")
+}
+
+enum Role {
+  PSA_STAFF
+  PSA_ADMIN
+  PHARMACY_OWNER
+  PHARMACY_WORKER
+  PHARMACY_CUSTOMER
+  
+}
